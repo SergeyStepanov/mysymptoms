@@ -96,7 +96,7 @@ internal object EncryptedDatabase {
         return passphrase
     }
 
-    private fun migratePlaintextDatabase(context: Context, databaseName: String, passphrase: String) {
+    internal fun migratePlaintextDatabase(context: Context, databaseName: String, passphrase: String) {
         val database = context.getDatabasePath(databaseName)
         val parent = checkNotNull(database.parentFile)
         check(parent.exists() || parent.mkdirs()) { "Could not create the database directory" }
@@ -132,9 +132,11 @@ internal object EncryptedDatabase {
         val source = SQLiteDatabase.openDatabase(
             database.absolutePath,
             null,
-            SQLiteDatabase.OPEN_READWRITE
+            SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.CREATE_IF_NECESSARY
         )
+        val sourceVersion: Int
         try {
+            sourceVersion = source.version
             source.execSQL(
                 "ATTACH DATABASE ? AS encrypted KEY ?",
                 arrayOf(staging.absolutePath, passphrase)
@@ -153,6 +155,8 @@ internal object EncryptedDatabase {
             null
         )
         try {
+            // sqlcipher_export does not copy PRAGMA user_version.
+            encrypted.version = sourceVersion
             encrypted.rawQuery("SELECT COUNT(*) FROM sqlite_master", emptyArray()).use { cursor ->
                 check(cursor.moveToFirst()) { "Could not verify the encrypted journal database" }
             }

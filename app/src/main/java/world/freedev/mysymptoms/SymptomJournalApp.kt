@@ -85,7 +85,7 @@ private enum class JournalScreen {
     CALENDAR
 }
 
-private val symptomEventSaver = Saver<SymptomEvent?, List<Any>>(
+internal val symptomEventSaver = Saver<SymptomEvent?, List<Any>>(
     save = { event ->
         event?.let {
             listOf(it.id, it.profileId, it.symptomId, it.occurredAt, it.note)
@@ -108,10 +108,16 @@ private val symptomEventSaver = Saver<SymptomEvent?, List<Any>>(
 )
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun SymptomJournalApp() {
     val context = LocalContext.current
     val store = remember { SymptomStore(context.applicationContext) }
+    SymptomJournalApp(store)
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+internal fun SymptomJournalApp(store: SymptomStore) {
+    val context = LocalContext.current
     var profiles by remember { mutableStateOf(store.ensureInitialProfile()) }
     var activeProfileId by remember {
         mutableLongStateOf(store.activeProfileId(profiles))

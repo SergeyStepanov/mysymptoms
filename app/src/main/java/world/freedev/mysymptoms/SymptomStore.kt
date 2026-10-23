@@ -42,7 +42,7 @@ val symptoms = listOf(
 fun timestampMinutesAgo(nowMillis: Long, minutesAgo: Int): Long =
     nowMillis - minutesAgo * 60_000L
 
-class SymptomStore private constructor(
+class SymptomStore internal constructor(
     context: Context,
     passphrase: String
 ) : SQLiteOpenHelper(

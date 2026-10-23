@@ -52,11 +52,22 @@ Run the local unit tests:
 ./gradlew :app:testDebugUnitTest
 ```
 
+Local tests use Robolectric and Mockito to cover migration file handling and
+failure recovery, event query/write contracts, saved preferences, and Compose
+state restoration for entry drafts, editing, and delete confirmation.
+SQLCipher calls are mocked in local tests; these tests do not validate encryption.
+
 Run the instrumented tests on a connected device or emulator:
 
 ```bash
 ./gradlew :app:connectedDebugAndroidTest
 ```
+
+Instrumented storage tests exercise real SQLCipher and Android Keystore:
+plaintext schema versions 1 and 2, schema/data preservation, event CRUD and
+profile isolation, persistence after reopening, and rejection of a wrong key.
+They use separate test database directories and preferences, not the journal's
+database or preferences.
 
 ## Data storage
 
