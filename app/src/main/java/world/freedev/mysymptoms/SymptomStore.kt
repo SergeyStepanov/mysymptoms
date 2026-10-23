@@ -21,7 +21,8 @@ data class SymptomEvent(
     val id: Long,
     val profileId: Long,
     val symptomId: String,
-    val occurredAt: Long
+    val occurredAt: Long,
+    val note: String
 )
 
 val symptoms = listOf(
@@ -85,6 +86,7 @@ class SymptomStore private constructor(
                 profile_id INTEGER NOT NULL,
                 symptom_id TEXT NOT NULL,
                 occurred_at INTEGER NOT NULL,
+                note TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE
             )
             """.trimIndent()
@@ -94,7 +96,11 @@ class SymptomStore private constructor(
         )
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE symptom_events ADD COLUMN note TEXT NOT NULL DEFAULT ''")
+        }
+    }
 
     fun ensureInitialProfile(): List<Profile> {
         val existing = getProfiles()
@@ -165,13 +171,39 @@ class SymptomStore private constructor(
         return writableDatabase.insertOrThrow("profiles", null, values)
     }
 
-    fun saveEvent(profileId: Long, symptomId: String, occurredAt: Long) {
+    fun saveEvent(profileId: Long, symptomId: String, occurredAt: Long, note: String = "") {
         val values = ContentValues().apply {
             put("profile_id", profileId)
             put("symptom_id", symptomId)
             put("occurred_at", occurredAt)
+            put("note", note)
         }
         writableDatabase.insertOrThrow("symptom_events", null, values)
+    }
+
+    fun updateEvent(eventId: Long, profileId: Long, occurredAt: Long, note: String) {
+        val values = ContentValues().apply {
+            put("occurred_at", occurredAt)
+            put("note", note)
+        }
+        check(
+            writableDatabase.update(
+                "symptom_events",
+                values,
+                "id = ? AND profile_id = ?",
+                arrayOf(eventId.toString(), profileId.toString())
+            ) == 1
+        ) { "Could not update symptom event $eventId" }
+    }
+
+    fun deleteEvent(eventId: Long, profileId: Long) {
+        check(
+            writableDatabase.delete(
+                "symptom_events",
+                "id = ? AND profile_id = ?",
+                arrayOf(eventId.toString(), profileId.toString())
+            ) == 1
+        ) { "Could not delete symptom event $eventId" }
     }
 
     fun eventCount(profileId: Long): Int {
@@ -188,7 +220,7 @@ class SymptomStore private constructor(
         val result = mutableListOf<SymptomEvent>()
         readableDatabase.query(
             "symptom_events",
-            arrayOf("id", "profile_id", "symptom_id", "occurred_at"),
+            arrayOf("id", "profile_id", "symptom_id", "occurred_at", "note"),
             "profile_id = ? AND occurred_at >= ? AND occurred_at < ?",
             arrayOf(profileId.toString(), startInclusive.toString(), endExclusive.toString()),
             null,
@@ -200,7 +232,8 @@ class SymptomStore private constructor(
                     id = cursor.getLong(0),
                     profileId = cursor.getLong(1),
                     symptomId = cursor.getString(2),
-                    occurredAt = cursor.getLong(3)
+                    occurredAt = cursor.getLong(3),
+                    note = cursor.getString(4)
                 )
             }
         }
@@ -209,7 +242,7 @@ class SymptomStore private constructor(
 
     companion object {
         internal const val DATABASE_NAME = "symptom_journal.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
         private const val PREFERENCES_NAME = "symptom_journal_preferences"
         private const val KEY_ACTIVE_PROFILE = "active_profile_id"
         const val KEY_LAYOUT = "symptom_layout"

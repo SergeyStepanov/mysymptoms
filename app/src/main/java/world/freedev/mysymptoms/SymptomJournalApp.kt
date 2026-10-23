@@ -1,6 +1,7 @@
 package world.freedev.mysymptoms
 
 import android.app.TimePickerDialog
+import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -26,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -34,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -54,6 +57,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -76,6 +80,7 @@ import kotlinx.coroutines.launch
 private enum class JournalScreen {
     HOME,
     ADD_EVENT,
+    EDIT_EVENT,
     CALENDAR
 }
 
@@ -90,6 +95,8 @@ fun SymptomJournalApp() {
     }
     var screen by rememberSaveable { mutableStateOf(JournalScreen.HOME) }
     var selectedSymptom by remember { mutableStateOf<Symptom?>(null) }
+    var editingEvent by remember { mutableStateOf<SymptomEvent?>(null) }
+    var calendarFocusDate by remember { mutableStateOf(LocalDate.now()) }
     var showAddProfile by remember { mutableStateOf(false) }
     var refreshCalendar by remember { mutableIntStateOf(0) }
     var layout by remember { mutableStateOf(store.savedLayout()) }
@@ -104,7 +111,14 @@ fun SymptomJournalApp() {
     }
 
     BackHandler(enabled = screen != JournalScreen.HOME) {
-        screen = JournalScreen.HOME
+        when (screen) {
+            JournalScreen.EDIT_EVENT -> {
+                editingEvent = null
+                screen = JournalScreen.CALENDAR
+            }
+            JournalScreen.ADD_EVENT, JournalScreen.CALENDAR -> screen = JournalScreen.HOME
+            JournalScreen.HOME -> Unit
+        }
     }
 
     ModalNavigationDrawer(
@@ -204,8 +218,8 @@ fun SymptomJournalApp() {
                     AddEventScreen(
                         symptom = symptom,
                         onCancel = { screen = JournalScreen.HOME },
-                        onSave = { occurredAt ->
-                            store.saveEvent(activeProfileId, symptom.id, occurredAt)
+                        onSave = { occurredAt, note ->
+                            store.saveEvent(activeProfileId, symptom.id, occurredAt, note)
                             refreshCalendar += 1
                             Toast.makeText(
                                 context,
@@ -218,10 +232,47 @@ fun SymptomJournalApp() {
                     )
                 }
 
+                JournalScreen.EDIT_EVENT -> editingEvent?.let { event ->
+                    EditEventScreen(
+                        event = event,
+                        onCancel = {
+                            editingEvent = null
+                            screen = JournalScreen.CALENDAR
+                        },
+                        onSave = { occurredAt, note ->
+                            store.updateEvent(event.id, event.profileId, occurredAt, note)
+                            calendarFocusDate = Instant.ofEpochMilli(occurredAt)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            refreshCalendar += 1
+                            editingEvent = null
+                            screen = JournalScreen.CALENDAR
+                        },
+                        onDelete = {
+                            store.deleteEvent(event.id, event.profileId)
+                            calendarFocusDate = Instant.ofEpochMilli(event.occurredAt)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            refreshCalendar += 1
+                            editingEvent = null
+                            screen = JournalScreen.CALENDAR
+                        },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+
                 JournalScreen.CALENDAR -> CalendarScreen(
                     store = store,
                     profileId = activeProfileId,
                     refreshKey = refreshCalendar,
+                    focusDate = calendarFocusDate,
+                    onEventClick = { event ->
+                        editingEvent = event
+                        calendarFocusDate = Instant.ofEpochMilli(event.occurredAt)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                        screen = JournalScreen.EDIT_EVENT
+                    },
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -372,11 +423,12 @@ private fun HomeScreen(
 private fun AddEventScreen(
     symptom: Symptom,
     onCancel: () -> Unit,
-    onSave: (Long) -> Unit,
+    onSave: (Long, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var occurredAt by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var note by remember { mutableStateOf("") }
     var selectedMinutesAgo by remember { mutableIntStateOf(0) }
     var exactTimeSelected by remember { mutableStateOf(false) }
     var exactTimeLabel by remember { mutableStateOf("") }
@@ -472,9 +524,18 @@ private fun AddEventScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp)
         )
+        OutlinedTextField(
+            value = note,
+            onValueChange = { note = it },
+            label = { Text(stringResource(R.string.note)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp),
+            minLines = 3
+        )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = { onSave(occurredAt) },
+            onClick = { onSave(occurredAt, note) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(R.string.save_entry))
@@ -489,14 +550,167 @@ private fun AddEventScreen(
 }
 
 @Composable
+private fun EditEventScreen(
+    event: SymptomEvent,
+    onCancel: () -> Unit,
+    onSave: (Long, String) -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var occurredAt by remember(event.id) { mutableLongStateOf(event.occurredAt) }
+    var note by remember(event.id) { mutableStateOf(event.note) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val symptom = symptoms.firstOrNull { it.id == event.symptomId }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = onCancel) {
+                Text("<-", style = MaterialTheme.typography.titleLarge)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(onClick = { showDeleteConfirmation = true }) {
+                    Text("🗑", fontSize = 22.sp, color = Color.Red)
+                }
+                Button(
+                    onClick = { onSave(occurredAt, note) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2E7D32)
+                    )
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            }
+        }
+        Row(
+            modifier = Modifier.padding(top = 20.dp, bottom = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(symptom?.icon ?: "•", fontSize = 36.sp)
+            Text(
+                text = symptom?.let { stringResource(it.titleResId) }
+                    ?: stringResource(R.string.symptom_fallback),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 12.dp)
+            )
+        }
+        val dateTime = Calendar.getInstance().apply { timeInMillis = occurredAt }
+        OutlinedButton(
+            onClick = {
+                DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        occurredAt = Calendar.getInstance().apply {
+                            timeInMillis = occurredAt
+                            set(Calendar.YEAR, year)
+                            set(Calendar.MONTH, month)
+                            set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                        }.timeInMillis
+                    },
+                    dateTime.get(Calendar.YEAR),
+                    dateTime.get(Calendar.MONTH),
+                    dateTime.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                stringResource(
+                    R.string.edit_date,
+                    Instant.ofEpochMilli(occurredAt)
+                        .atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()))
+                )
+            )
+        }
+        OutlinedButton(
+            onClick = {
+                val currentTime = Calendar.getInstance().apply { timeInMillis = occurredAt }
+                TimePickerDialog(
+                    context,
+                    { _, hourOfDay, minute ->
+                        occurredAt = Calendar.getInstance().apply {
+                            timeInMillis = occurredAt
+                            set(Calendar.HOUR_OF_DAY, hourOfDay)
+                            set(Calendar.MINUTE, minute)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
+                    },
+                    currentTime.get(Calendar.HOUR_OF_DAY),
+                    currentTime.get(Calendar.MINUTE),
+                    true
+                ).show()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+        ) {
+            Text(
+                stringResource(
+                    R.string.edit_time,
+                    formatClockTime(occurredAt)
+                )
+            )
+        }
+        OutlinedTextField(
+            value = note,
+            onValueChange = { note = it },
+            label = { Text(stringResource(R.string.note)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp),
+            minLines = 4
+        )
+    }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            text = { Text(stringResource(R.string.confirm_delete_entry)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDelete()
+                    }
+                ) {
+                    Text(stringResource(R.string.yes), color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text(stringResource(R.string.no))
+                }
+            }
+        )
+    }
+}
+
+@Composable
 private fun CalendarScreen(
     store: SymptomStore,
     profileId: Long,
     refreshKey: Int,
+    focusDate: LocalDate,
+    onEventClick: (SymptomEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var month by remember { mutableStateOf(YearMonth.now()) }
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var month by remember { mutableStateOf(YearMonth.from(focusDate)) }
+    var selectedDate by remember { mutableStateOf(focusDate) }
     val zone = ZoneId.systemDefault()
     val events = remember(profileId, month, refreshKey) {
         val first = month.atDay(1).atStartOfDay(zone).toInstant().toEpochMilli()
@@ -630,7 +844,8 @@ private fun CalendarScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                        .padding(bottom = 8.dp)
+                        .clickable { onEventClick(event) },
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     )
@@ -654,6 +869,14 @@ private fun CalendarScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            if (event.note.isNotBlank()) {
+                                Text(
+                                    event.note,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                         }
                     }
                 }

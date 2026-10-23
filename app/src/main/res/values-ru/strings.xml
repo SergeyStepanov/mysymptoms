@@ -6,6 +6,13 @@
     <string name="unnamed_profile">Без имени</string>
     <string name="add_user">Добавить пользователя</string>
     <string name="entry_saved">Отметка сохранена</string>
+    <string name="save">Сохранить</string>
+    <string name="note">Примечание</string>
+    <string name="edit_date">Дата: %1$s</string>
+    <string name="edit_time">Время: %1$s</string>
+    <string name="confirm_delete_entry">Вы уверены, что хотите удалить запись?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
     <string name="home_title">Что вы сейчас ощущаете?</string>
     <string name="home_subtitle">Выберите симптом, чтобы добавить отметку</string>
     <string name="list">Список</string>

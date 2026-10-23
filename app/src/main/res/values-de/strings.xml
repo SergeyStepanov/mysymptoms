@@ -6,6 +6,13 @@
     <string name="unnamed_profile">Ohne Namen</string>
     <string name="add_user">Person hinzufügen</string>
     <string name="entry_saved">Eintrag gespeichert</string>
+    <string name="save">Speichern</string>
+    <string name="note">Notiz</string>
+    <string name="edit_date">Datum: %1$s</string>
+    <string name="edit_time">Uhrzeit: %1$s</string>
+    <string name="confirm_delete_entry">Möchtest du diesen Eintrag wirklich löschen?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
     <string name="home_title">Was spürst du gerade?</string>
     <string name="home_subtitle">Wähle ein Symptom aus, um es zu erfassen</string>
     <string name="list">Liste</string>

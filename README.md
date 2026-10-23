@@ -8,6 +8,7 @@ A local Android app for quickly logging symptoms and reviewing their history in 
 - View symptoms in a list or a grid of large icons.
 - Record when a symptom started: now, 5, 15, 30, or 60 minutes ago, or choose an exact time.
 - Review entries by day in the calendar.
+- Add a note to an entry, then tap it in the calendar to edit its date, time, or note, or delete it after confirmation. The symptom type cannot be changed.
 - Use multiple local profiles; the most recently selected profile is remembered.
 - Store data on the device using SQLite.
 - Localized in English, German, and Russian.
@@ -59,7 +60,7 @@ Run the instrumented tests on a connected device or emulator:
 
 ## Data storage
 
-Symptom events and profiles are stored in an SQLCipher-encrypted SQLite database in the app's private storage. The database passphrase is randomly generated and wrapped with an AES key held by Android Keystore. Existing plaintext databases are encrypted in place on the first launch after this update; their profiles and symptom entries are preserved. Each entry's date and time are saved as a timestamp. The app does not request internet access or provide cloud synchronization.
+Symptom events, notes, and profiles are stored in an SQLCipher-encrypted SQLite database in the app's private storage. The database passphrase is randomly generated and wrapped with an AES key held by Android Keystore. Existing plaintext databases are encrypted in place on the first launch after this update; their profiles and symptom entries are preserved. Each entry's date and time are saved as a timestamp. The app does not request internet access or provide cloud synchronization.
 
 Automatic Android cloud backups and device-to-device system transfers are disabled for app data. This prevents Android's backup service from copying the journal database and preferences. It does not delete any backup that may have been created before this setting was applied.
 
@@ -69,7 +70,7 @@ Database encryption protects the database file at rest, but does not protect dat
 
 Symptom Journal is a personal tracking tool. It does not diagnose conditions, recommend treatment, or replace advice or care from a qualified healthcare professional. Do not use the journal to decide whether to seek care. For severe or urgent symptoms, contact local emergency services or a healthcare professional.
 
-The current version does not support editing, deleting, or exporting individual entries or profiles. To remove all journal data, clear the app's storage from Android system settings or uninstall the app. This permanently removes all profiles and entries stored by the app; there is no in-app export or recovery.
+Individual entries can be edited or deleted from the calendar. Deletion is permanent and cannot be undone. Editing or deleting profiles and exporting data are not supported. To remove all journal data, clear the app's storage from Android system settings or uninstall the app. This permanently removes all profiles and entries stored by the app; there is no in-app export or recovery.
 
 ## License and attribution
 

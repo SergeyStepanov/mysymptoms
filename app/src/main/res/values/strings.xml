@@ -6,6 +6,13 @@
     <string name="unnamed_profile">Unnamed</string>
     <string name="add_user">Add user</string>
     <string name="entry_saved">Entry saved</string>
+    <string name="save">Save</string>
+    <string name="note">Note</string>
+    <string name="edit_date">Date: %1$s</string>
+    <string name="edit_time">Time: %1$s</string>
+    <string name="confirm_delete_entry">Are you sure you want to delete this entry?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <string name="home_title">What are you experiencing?</string>
     <string name="home_subtitle">Choose a symptom to log it</string>
     <string name="list">List</string>
