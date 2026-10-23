@@ -350,7 +350,6 @@ private fun HomeScreen(
     onSymptomSelected: (Symptom) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Text(
             text = stringResource(R.string.home_title),
@@ -417,12 +416,13 @@ private fun HomeScreen(
             ) {
                 items(symptoms.size) { index ->
                     val symptom = symptoms[index]
+                    val symptomTitle = stringResource(symptom.titleResId)
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
                             .semantics {
-                                contentDescription = context.getString(symptom.titleResId)
+                                contentDescription = symptomTitle
                             }
                             .clickable { onSymptomSelected(symptom) },
                         colors = CardDefaults.cardColors(
