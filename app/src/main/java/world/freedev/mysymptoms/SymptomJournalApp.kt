@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -84,6 +85,28 @@ private enum class JournalScreen {
     CALENDAR
 }
 
+private val symptomEventSaver = Saver<SymptomEvent?, List<Any>>(
+    save = { event ->
+        event?.let {
+            listOf(it.id, it.profileId, it.symptomId, it.occurredAt, it.note)
+        } ?: emptyList()
+    },
+    restore = { values ->
+        val id = values.getOrNull(0) as? Long
+        val profileId = values.getOrNull(1) as? Long
+        val symptomId = values.getOrNull(2) as? String
+        val occurredAt = values.getOrNull(3) as? Long
+        val note = values.getOrNull(4) as? String
+        if (id != null && profileId != null && symptomId != null &&
+            occurredAt != null && note != null
+        ) {
+            SymptomEvent(id, profileId, symptomId, occurredAt, note)
+        } else {
+            null
+        }
+    }
+)
+
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun SymptomJournalApp() {
@@ -94,8 +117,10 @@ fun SymptomJournalApp() {
         mutableLongStateOf(store.activeProfileId(profiles))
     }
     var screen by rememberSaveable { mutableStateOf(JournalScreen.HOME) }
-    var selectedSymptom by remember { mutableStateOf<Symptom?>(null) }
-    var editingEvent by remember { mutableStateOf<SymptomEvent?>(null) }
+    var selectedSymptomId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editingEvent by rememberSaveable(stateSaver = symptomEventSaver) {
+        mutableStateOf<SymptomEvent?>(null)
+    }
     var calendarFocusDate by remember { mutableStateOf(LocalDate.now()) }
     var showAddProfile by remember { mutableStateOf(false) }
     var refreshCalendar by remember { mutableIntStateOf(0) }
@@ -207,14 +232,15 @@ fun SymptomJournalApp() {
                         store.setLayout(newLayout)
                     },
                     onSymptomSelected = {
-                        selectedSymptom = it
+                        selectedSymptomId = it.id
                         screen = JournalScreen.ADD_EVENT
                     },
                     modifier = Modifier.padding(innerPadding)
                 )
 
                 JournalScreen.ADD_EVENT -> {
-                    val symptom = selectedSymptom ?: symptoms.first()
+                    val symptom = symptoms.firstOrNull { it.id == selectedSymptomId }
+                        ?: symptoms.first()
                     AddEventScreen(
                         symptom = symptom,
                         onCancel = { screen = JournalScreen.HOME },
@@ -427,11 +453,11 @@ private fun AddEventScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var occurredAt by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    var note by remember { mutableStateOf("") }
-    var selectedMinutesAgo by remember { mutableIntStateOf(0) }
-    var exactTimeSelected by remember { mutableStateOf(false) }
-    var exactTimeLabel by remember { mutableStateOf("") }
+    var occurredAt by rememberSaveable { mutableLongStateOf(System.currentTimeMillis()) }
+    var note by rememberSaveable { mutableStateOf("") }
+    var selectedMinutesAgo by rememberSaveable { mutableIntStateOf(0) }
+    var exactTimeSelected by rememberSaveable { mutableStateOf(false) }
+    var exactTimeLabel by rememberSaveable { mutableStateOf("") }
     val presets = listOf(0, 5, 15, 30, 60)
 
     Column(
@@ -558,9 +584,11 @@ private fun EditEventScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var occurredAt by remember(event.id) { mutableLongStateOf(event.occurredAt) }
-    var note by remember(event.id) { mutableStateOf(event.note) }
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var occurredAt by rememberSaveable(event.id) {
+        mutableLongStateOf(event.occurredAt)
+    }
+    var note by rememberSaveable(event.id) { mutableStateOf(event.note) }
+    var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     val symptom = symptoms.firstOrNull { it.id == event.symptomId }
 
     Column(
