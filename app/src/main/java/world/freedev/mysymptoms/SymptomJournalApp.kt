@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -71,7 +70,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Calendar
 import java.util.Locale
-import java.time.DayOfWeek
 import java.time.temporal.WeekFields
 import kotlinx.coroutines.launch
 
@@ -102,7 +100,7 @@ fun SymptomJournalApp() {
     val visibleProfileName = when {
         profiles.size == 1 && activeProfile.name.isNullOrBlank() -> null
         else -> activeProfile.name?.takeIf { it.isNotBlank() }
-            ?: context.getString(R.string.unnamed_profile)
+            ?: stringResource(R.string.unnamed_profile)
     }
 
     BackHandler(enabled = screen != JournalScreen.HOME) {
@@ -137,7 +135,7 @@ fun SymptomJournalApp() {
                     if (!(profiles.size == 1 && activeProfile.name.isNullOrBlank())) {
                         profiles.forEach { profile ->
                             val name = profile.name?.takeIf { it.isNotBlank() }
-                                ?: context.getString(R.string.unnamed_profile)
+                                ?: stringResource(R.string.unnamed_profile)
                             DrawerRow(
                                 icon = if (profile.id == activeProfileId) "✓" else "○",
                                 title = name

@@ -31,6 +31,18 @@ Open the project in Android Studio and run the app configuration on a device or 
 
 The debug APK is created at `app/build/outputs/apk/debug/app-debug.apk`.
 
+Debug builds use the application ID `world.freedev.mysymptoms.dev`, a `-dev` version
+suffix, a localized app name ending in `Dev`, and a launcher icon with a `DEV`
+badge (including themed icons). Select the `debug` build variant in Android Studio
+for development. Debug and release builds can be installed side by side: their
+databases, preferences, and Android Keystore keys are isolated by Android, even
+though the database filenames and key aliases are the same.
+
+Release builds keep the application ID `world.freedev.mysymptoms`, the original
+name, and the original icon. This separation depends on the build variant, not
+the Git branch. Existing data under the original application ID is not copied
+to the new debug app.
+
 ## Tests
 
 Run the local unit tests:
