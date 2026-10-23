@@ -1,0 +1,6 @@
+Initial release
+
+Quick symptom logging with time presets and exact time selection.
+Calendar view for browsing symptom history.
+Multiple local profiles.
+English, German, and Russian translations.

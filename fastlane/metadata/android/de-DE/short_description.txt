@@ -1,0 +1,1 @@
+Symptome offline erfassen und den Verlauf im Kalender ansehen.

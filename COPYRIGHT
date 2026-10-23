@@ -1,0 +1,13 @@
+Copyright (C) 2026 Sergey Stepanov
+
+Unless stated otherwise, the first-party source code, translations, documentation,
+and original app artwork in this repository are provided under the GNU Affero
+General Public License, version 3 only (AGPL-3.0-only). The complete license
+text is in LICENSE.
+
+This notice does not relicense third-party software. Dependencies declared in
+the Gradle build files, the Gradle wrapper, and Android platform components
+remain under their respective licenses and terms. The symptom icons in the
+source are Unicode emoji characters rendered using the device's system font;
+those fonts are provided by the Android device and are not included in this
+repository.

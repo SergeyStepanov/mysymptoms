@@ -1,0 +1,19 @@
+Das Symptomtagebuch hilft dir, Symptome schnell zu erfassen und ihren zeitlichen Verlauf anzusehen.
+
+FUNKTIONEN
+• Symptome mit wenigen Fingertipps erfassen.
+• Beginn festhalten: jetzt, vor 5, 15, 30 oder 60 Minuten oder zu einer genauen Uhrzeit.
+• Einträge im Kalender ansehen und Symptome für einzelne Tage prüfen.
+• Separate Profile für dich und Menschen, um die du dich kümmerst.
+• Zwischen Symptomliste und Symbolraster wechseln.
+• Die App auf Englisch, Deutsch oder Russisch verwenden.
+
+Profile und Symptomeinträge werden im privaten App-Speicher auf deinem Gerät gespeichert. Automatische Android-Cloud-Backups und Systemübertragungen auf andere Geräte sind deaktiviert. Die App benötigt weder ein Konto noch eine Internetverbindung.
+
+Die Datenbank wird nicht zusätzlich durch die App verschlüsselt. Schütze den Zugriff auf dein Gerät mit einer sicheren Bildschirmsperre.
+
+MEDIZINISCHER HINWEIS
+Das Symptomtagebuch dient der persönlichen Dokumentation. Es stellt keine Diagnose, empfiehlt keine Behandlung und ersetzt nicht den Rat oder die Versorgung durch medizinisches Fachpersonal. Nutze die App nicht, um zu entscheiden, ob du medizinische Hilfe benötigst. Wende dich bei schweren oder dringenden Beschwerden an den örtlichen Rettungsdienst oder medizinisches Fachpersonal.
+
+DATENVERWALTUNG
+Die aktuelle Version unterstützt weder das Bearbeiten oder Löschen einzelner Einträge oder Profile noch den Export. Um alle Tagebuchdaten zu entfernen, lösche den App-Speicher in den Android-Einstellungen oder deinstalliere die App. Dadurch werden alle in der App gespeicherten Profile und Einträge dauerhaft gelöscht.

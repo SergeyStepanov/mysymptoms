@@ -1,0 +1,19 @@
+Symptom Journal helps you quickly record symptoms and review when they occurred.
+
+FEATURES
+• Log a symptom in just a few taps.
+• Choose a start time: now, 5, 15, 30, or 60 minutes ago, or set an exact time.
+• Browse entries in a calendar and see the symptoms recorded for each day.
+• Keep separate profiles for yourself and people you care for.
+• Switch between a symptom list and a grid of icons.
+• Use the app in English, German, or Russian.
+
+Your profiles and symptom entries are stored in the app's private storage on your device. Automatic Android cloud backup and device-to-device system transfer are disabled. The app does not require an account or an internet connection.
+
+The database is not separately encrypted by the app. Protect access to your device with a secure screen lock.
+
+MEDICAL DISCLAIMER
+Symptom Journal is a personal tracking tool. It does not diagnose conditions, recommend treatment, or replace advice or care from a qualified healthcare professional. Do not use it to decide whether to seek care. For severe or urgent symptoms, contact local emergency services or a healthcare professional.
+
+DATA MANAGEMENT
+The current version does not support editing, deleting, or exporting individual entries or profiles. To remove all journal data, clear the app's storage in Android settings or uninstall the app. This permanently deletes all profiles and entries stored by the app.
