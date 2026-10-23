@@ -21,7 +21,10 @@ import org.mockito.Mockito.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], qualifiers = "en")
@@ -92,6 +95,27 @@ class UiRestorationTest {
         verify(store, never()).deleteEvent(anyLong(), anyLong())
         compose.onNodeWithText("Yes").performClick()
         verify(store).deleteEvent(42, 7)
+    }
+
+    @Test
+    fun calendarMonthAndSelectedDaySurviveRestoration() {
+        val restoration = launchApp()
+        compose.onNodeWithText("☰").performClick()
+        compose.onNodeWithText("Calendar").performClick()
+        compose.onNodeWithText("‹").performClick()
+        compose.onNodeWithText("15").performClick()
+
+        restoration.emulateSavedInstanceStateRestore()
+
+        val selectedMonth = YearMonth.now().minusMonths(1)
+        val monthTitle = selectedMonth.format(
+            DateTimeFormatter.ofPattern("LLLL yyyy", Locale.ENGLISH)
+        ).replaceFirstChar { it.titlecase(Locale.ENGLISH) }
+        val selectedTitle = selectedMonth.atDay(15).format(
+            DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)
+        ).replaceFirstChar { it.titlecase(Locale.ENGLISH) }
+        compose.onNodeWithText(monthTitle).assertIsDisplayed()
+        compose.onNodeWithText(selectedTitle).assertIsDisplayed()
     }
 
     @Test

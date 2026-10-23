@@ -107,6 +107,16 @@ internal val symptomEventSaver = Saver<SymptomEvent?, List<Any>>(
     }
 )
 
+private val localDateSaver = Saver<LocalDate, String>(
+    save = { it.toString() },
+    restore = { LocalDate.parse(it) }
+)
+
+private val yearMonthSaver = Saver<YearMonth, String>(
+    save = { it.toString() },
+    restore = { YearMonth.parse(it) }
+)
+
 @Composable
 fun SymptomJournalApp() {
     val context = LocalContext.current
@@ -127,7 +137,9 @@ internal fun SymptomJournalApp(store: SymptomStore) {
     var editingEvent by rememberSaveable(stateSaver = symptomEventSaver) {
         mutableStateOf<SymptomEvent?>(null)
     }
-    var calendarFocusDate by remember { mutableStateOf(LocalDate.now()) }
+    var calendarFocusDate by rememberSaveable(stateSaver = localDateSaver) {
+        mutableStateOf(LocalDate.now())
+    }
     var showAddProfile by remember { mutableStateOf(false) }
     var refreshCalendar by remember { mutableIntStateOf(0) }
     var layout by remember { mutableStateOf(store.savedLayout()) }
@@ -743,8 +755,12 @@ private fun CalendarScreen(
     onEventClick: (SymptomEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var month by remember { mutableStateOf(YearMonth.from(focusDate)) }
-    var selectedDate by remember { mutableStateOf(focusDate) }
+    var month by rememberSaveable(stateSaver = yearMonthSaver) {
+        mutableStateOf(YearMonth.from(focusDate))
+    }
+    var selectedDate by rememberSaveable(stateSaver = localDateSaver) {
+        mutableStateOf(focusDate)
+    }
     val zone = ZoneId.systemDefault()
     val events = remember(profileId, month, refreshKey) {
         val first = month.atDay(1).atStartOfDay(zone).toInstant().toEpochMilli()
