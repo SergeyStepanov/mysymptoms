@@ -2,9 +2,9 @@ package world.freedev.mysymptoms
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import androidx.annotation.StringRes
+import net.zetetic.database.sqlcipher.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SQLiteOpenHelper
 
 data class Symptom(
     val id: String,
@@ -41,12 +41,25 @@ val symptoms = listOf(
 fun timestampMinutesAgo(nowMillis: Long, minutesAgo: Int): Long =
     nowMillis - minutesAgo * 60_000L
 
-class SymptomStore(context: Context) : SQLiteOpenHelper(
+class SymptomStore private constructor(
+    context: Context,
+    passphrase: String
+) : SQLiteOpenHelper(
     context.applicationContext,
     DATABASE_NAME,
+    passphrase,
     null,
-    DATABASE_VERSION
+    DATABASE_VERSION,
+    0,
+    null,
+    null,
+    false
 ) {
+    constructor(context: Context) : this(
+        context.applicationContext,
+        EncryptedDatabase.initialize(context.applicationContext, DATABASE_NAME)
+    )
+
     private val preferences = context.applicationContext.getSharedPreferences(
         PREFERENCES_NAME,
         Context.MODE_PRIVATE
@@ -195,7 +208,7 @@ class SymptomStore(context: Context) : SQLiteOpenHelper(
     }
 
     companion object {
-        private const val DATABASE_NAME = "symptom_journal.db"
+        internal const val DATABASE_NAME = "symptom_journal.db"
         private const val DATABASE_VERSION = 1
         private const val PREFERENCES_NAME = "symptom_journal_preferences"
         private const val KEY_ACTIVE_PROFILE = "active_profile_id"

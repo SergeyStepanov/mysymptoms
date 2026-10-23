@@ -47,11 +47,11 @@ Run the instrumented tests on a connected device or emulator:
 
 ## Data storage
 
-Symptom events and profiles are stored in a SQLite database in the app's private storage. Each entry's date and time are saved as a timestamp. The app does not request internet access or provide cloud synchronization.
+Symptom events and profiles are stored in an SQLCipher-encrypted SQLite database in the app's private storage. The database passphrase is randomly generated and wrapped with an AES key held by Android Keystore. Existing plaintext databases are encrypted in place on the first launch after this update; their profiles and symptom entries are preserved. Each entry's date and time are saved as a timestamp. The app does not request internet access or provide cloud synchronization.
 
 Automatic Android cloud backups and device-to-device system transfers are disabled for app data. This prevents Android's backup service from copying the journal database and preferences. It does not delete any backup that may have been created before this setting was applied.
 
-The SQLite database is not separately encrypted by the app. Android's app sandbox and device encryption protect data on a normally secured device, but this is not a guarantee against access on a rooted or compromised device, or while an attacker can use an unlocked device. Use a strong device screen lock and keep Android up to date. App-level database encryption would require a separate implementation.
+Database encryption protects the database file at rest, but does not protect data while the app is using it or against a rooted or compromised device. The database key is tied to this app installation and is not backed up; clearing app storage or uninstalling removes the journal and its key. Use a strong device screen lock and keep Android up to date.
 
 ## Medical use and managing your data
 
